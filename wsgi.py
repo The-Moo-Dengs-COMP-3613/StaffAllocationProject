@@ -5,10 +5,9 @@ from flask.cli import with_appcontext, AppGroup
 from App.database import db, get_migrate
 from App.models import User, Course, Staff
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize ,create_course, create_staff, assign_staff_to_course, view_course_details)
+from App.controllers import (create_user, get_all_users_json, get_all_users, initialize, create_course, create_staff, assign_staff_to_course, view_course_details)
 
-
-# This commands file allow you to create convenient CLI commands for testing controllers
+# This commands file allows you to create convenient CLI commands for testing controllers
 
 app = create_app()
 migrate = get_migrate(app)
@@ -17,9 +16,8 @@ migrate = get_migrate(app)
 @app.cli.command("init", help="Creates and initializes the database")
 def init():
     initialize()
-    
-    # Mock data
 
+    # Mock data: Create staff entries
     # Lecturers
     lecturer1 = Staff(title="Dr.", firstName="Jane", lastName="Villanueva", role="lecturer")
     lecturer2 = Staff(title="Prof.", firstName="Jackson", lastName="Duke", role="lecturer")
@@ -60,27 +58,19 @@ def init():
     db.session.add_all([course1, course2, course3, course4, course5])
     db.session.commit()
 
-    print('Database intialized with mock data')
+    print('Database initialized with mock data')
 
 '''
 User Commands
 '''
+user_cli = AppGroup('user', help='User object commands')
 
-# Commands can be organized using groups
-
-# create a group, it would be the first argument of the comand
-# eg : flask user <command>
-user_cli = AppGroup('user', help='User object commands') 
-
-# Then define the command and any parameters and annotate it with the group (@)
 @user_cli.command("create", help="Creates a user")
 @click.argument("username", default="rob")
 @click.argument("password", default="robpass")
 def create_user_command(username, password):
     create_user(username, password)
     print(f'{username} created!')
-
-# this command will be : flask user create bob bobpass
 
 @user_cli.command("list", help="Lists users in the database")
 @click.argument("format", default="string")
@@ -90,10 +80,7 @@ def list_user_command(format):
     else:
         print(get_all_users_json())
 
-app.cli.add_command(user_cli) # add the group to the cli
-
-
-
+app.cli.add_command(user_cli)
 
 '''
 Course Commands
@@ -108,7 +95,20 @@ course_cli = AppGroup('course', help='Course object commands')
 @click.argument("ta_id")
 def create_course_command(course_code, course_name, lecturer_id, tutor_id, ta_id):
     course = create_course(course_code, course_name, lecturer_id, tutor_id, ta_id)
-    print(f'Course {course.courseCode} created!')
+
+    # Fetch and display staff names
+    lecturer = Staff.query.get(lecturer_id)
+    tutor = Staff.query.get(tutor_id)
+    ta = Staff.query.get(ta_id)
+
+    lecturer_name = f"{lecturer.title} {lecturer.firstName} {lecturer.lastName}" if lecturer else "None"
+    tutor_name = f"{tutor.title} {tutor.firstName} {tutor.lastName}" if tutor else "None"
+    ta_name = f"{ta.title} {ta.firstName} {ta.lastName}" if ta else "None"
+
+    print(f'Course {course.courseCode} created with:')
+    print(f'Lecturer: {lecturer_name}')
+    print(f'Tutor: {tutor_name}')
+    print(f'Teaching Assistant: {ta_name}')
 
 @course_cli.command("assign", help="Assign staff to a course")
 @click.argument("course_code")
@@ -118,7 +118,20 @@ def create_course_command(course_code, course_name, lecturer_id, tutor_id, ta_id
 def assign_staff_command(course_code, lecturer_id=None, tutor_id=None, ta_id=None):
     success = assign_staff_to_course(course_code, lecturer_id, tutor_id, ta_id)
     if success:
+        # Fetch and display staff names
+        course = Course.query.filter_by(courseCode=course_code).first()
+        lecturer = Staff.query.get(course.lecturer_id)
+        tutor = Staff.query.get(course.tutor_id)
+        ta = Staff.query.get(course.ta_id)
+
+        lecturer_name = f"{lecturer.title} {lecturer.firstName} {lecturer.lastName}" if lecturer else "None"
+        tutor_name = f"{tutor.title} {tutor.firstName} {tutor.lastName}" if tutor else "None"
+        ta_name = f"{ta.title} {ta.firstName} {ta.lastName}" if ta else "None"
+
         print(f'Staff assigned to course {course_code} successfully!')
+        print(f'Lecturer: {lecturer_name}')
+        print(f'Tutor: {tutor_name}')
+        print(f'Teaching Assistant: {ta_name}')
     else:
         print(f'Course {course_code} not found!')
 
@@ -133,11 +146,7 @@ def view_course_command(course_code):
         for key, value in details.items():
             print(f"{key}: {value}")
 
-app.cli.add_command(course_cli)  # Add the course group to the cli
-
-
-
-
+app.cli.add_command(course_cli)
 
 '''
 Staff Commands
@@ -153,39 +162,12 @@ def create_staff_command(title, first_name, last_name, role):
     staff = create_staff(title, first_name, last_name, role)
     print(f'Staff member {staff.firstName} {staff.lastName} created!')
 
-@staff_cli.command("assign", help="Assign staff to a course")
-@click.argument("course_code")
-@click.argument("lecturer_id", required=False)
-@click.argument("tutor_id", required=False)
-@click.argument("ta_id", required=False)
-def assign_staff_command(course_code, lecturer_id=None, tutor_id=None, ta_id=None):
-    success = assign_staff_to_course(course_code, lecturer_id, tutor_id, ta_id)
-    if success:
-        print(f'Staff assigned to course {course_code} successfully!')
-    else:
-        print(f'Course {course_code} not found!')
+app.cli.add_command(staff_cli)
 
-@staff_cli.command("view", help="View course details")
-@click.argument("course_code")
-def view_course_command(course_code):
-    details = view_course_details(course_code)
-    if isinstance(details, str):
-        print(details)
-    else:
-        print("Course Details:")
-        for key, value in details.items():
-            print(f"{key}: {value}")
-
-app.cli.add_command(staff_cli)  # add the staff group to the cli
-
-
-
-   
 '''
 Test Commands
 '''
-
-test = AppGroup('test', help='Testing commands') 
+test = AppGroup('test', help='Testing commands')
 
 @test.command("user", help="Run User tests")
 @click.argument("type", default="all")
@@ -196,6 +178,5 @@ def user_tests_command(type):
         sys.exit(pytest.main(["-k", "UserIntegrationTests"]))
     else:
         sys.exit(pytest.main(["-k", "App"]))
-    
 
 app.cli.add_command(test)

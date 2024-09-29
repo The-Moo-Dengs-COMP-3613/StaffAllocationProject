@@ -66,18 +66,25 @@ def assign_staff_to_course(course_code, lecturer_id=None, tutor_id=None, ta_id=N
     return True
 
 def view_course_details(course_code):
-    """Retrieve details for a specific course."""
+    """Retrieve details for a specific course with staff names."""
     course = Course.query.filter_by(courseCode=course_code).first()
     if not course:
         return f'Course {course_code} not found.'
 
-    
+    lecturer = Staff.query.get(course.lecturer_id)
+    tutor = Staff.query.get(course.tutor_id)
+    ta = Staff.query.get(course.ta_id)
+
+    lecturer_name = f"{lecturer.title} {lecturer.firstName} {lecturer.lastName}" if lecturer else "None"
+    tutor_name = f"{tutor.title} {tutor.firstName} {tutor.lastName}" if tutor else "None"
+    ta_name = f"{ta.title} {ta.firstName} {ta.lastName}" if ta else "None"
+
     details = {
         "Course Code": course.courseCode,
         "Course Name": course.courseName,
-        "Lecturer": course.lecturer_id,
-        "Tutor": course.tutor_id,
-        "Teaching Assistant": course.ta_id
+        "Lecturer": lecturer_name,
+        "Tutor": tutor_name,
+        "Teaching Assistant": ta_name
     }
     
     return details
