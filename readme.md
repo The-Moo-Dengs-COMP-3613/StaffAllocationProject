@@ -61,31 +61,53 @@ in configuration information via environment tab of your render project's dashbo
 
 # Flask Commands
 
-wsgi.py is a utility script for performing various tasks related to the project. You can use it to import and test any code in the project. 
-You just need create a manager command function, for example:
+The following are the commands to perform the project requirements.
+
+Requirement #1 - creating a course:
 
 ```python
 # inside wsgi.py
 
-user_cli = AppGroup('user', help='User object commands')
+course_cli = AppGroup('course', help='Course object commands')
 
-@user_cli.cli.command("create-user")
-@click.argument("username")
-@click.argument("password")
-def create_user_command(username, password):
-    create_user(username, password)
-    print(f'{username} created!')
+@course_cli.command("create", help="Creates a course")
+@click.argument("course_code")
+@click.argument("course_name")
+@click.argument("lecturer_id")
+@click.argument("tutor_id")
+@click.argument("ta_id")
+def create_course_command(course_code, course_name, lecturer_id, tutor_id, ta_id):
+    course = create_course(course_code, course_name, lecturer_id, tutor_id, ta_id)
 
-app.cli.add_command(user_cli) # add the group to the cli
+    # Fetch and display staff names
+    lecturer = Staff.query.get(lecturer_id)
+    tutor = Staff.query.get(tutor_id)
+    ta = Staff.query.get(ta_id)
+
+    lecturer_name = f"{lecturer.title} {lecturer.firstName} {lecturer.lastName}" if lecturer else "None"
+    tutor_name = f"{tutor.title} {tutor.firstName} {tutor.lastName}" if tutor else "None"
+    ta_name = f"{ta.title} {ta.firstName} {ta.lastName}" if ta else "None"
+
+    print(f'Course {course.courseCode} created with:')
+    print(f'Lecturer: {lecturer_name}')
+    print(f'Tutor: {tutor_name}')
+    print(f'Teaching Assistant: {ta_name}')
+
+
 
 ```
 
 Then execute the command invoking with flask cli with command name and the relevant parameters
 
 ```bash
-$ flask user create bob bobpass
+$ flask course create "course code" "course name" lecturer id tutor id TA id
 ```
 
+For example: 
+
+```bash
+$ flask course create "COMP200" "Advanced Programming" 1 2 3
+```
 
 # Running the Project
 
