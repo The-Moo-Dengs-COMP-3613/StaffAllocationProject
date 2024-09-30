@@ -5,59 +5,7 @@
 
 ![Tests](https://github.com/uwidcit/flaskmvc/actions/workflows/dev.yml/badge.svg)
 
-# Flask MVC Template
-A template for flask applications structured in the Model View Controller pattern [Demo](https://dcit-flaskmvc.herokuapp.com/). [Postman Collection](https://documenter.getpostman.com/view/583570/2s83zcTnEJ)
 
-
-# Dependencies
-* Python3/pip3
-* Packages listed in requirements.txt
-
-# Installing Dependencies
-```bash
-$ pip install -r requirements.txt
-```
-
-# Configuration Management
-
-
-Configuration information such as the database url/port, credentials, API keys etc are to be supplied to the application. However, it is bad practice to stage production information in publicly visible repositories.
-Instead, all config is provided by a config file or via [environment variables](https://linuxize.com/post/how-to-set-and-list-environment-variables-in-linux/).
-
-## In Development
-
-When running the project in a development environment (such as gitpod) the app is configured via default_config.py file in the App folder. By default, the config for development uses a sqlite database.
-
-default_config.py
-```python
-SQLALCHEMY_DATABASE_URI = "sqlite:///temp-database.db"
-SECRET_KEY = "secret key"
-JWT_ACCESS_TOKEN_EXPIRES = 7
-ENV = "DEVELOPMENT"
-```
-
-These values would be imported and added to the app in load_config() function in config.py
-
-config.py
-```python
-# must be updated to inlude addtional secrets/ api keys & use a gitignored custom-config file instad
-def load_config():
-    config = {'ENV': os.environ.get('ENV', 'DEVELOPMENT')}
-    delta = 7
-    if config['ENV'] == "DEVELOPMENT":
-        from .default_config import JWT_ACCESS_TOKEN_EXPIRES, SQLALCHEMY_DATABASE_URI, SECRET_KEY
-        config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-        config['SECRET_KEY'] = SECRET_KEY
-        delta = JWT_ACCESS_TOKEN_EXPIRES
-...
-```
-
-## In Production
-
-When deploying your application to production/staging you must pass
-in configuration information via environment tab of your render project's dashboard.
-
-![perms](./images/fig1.png)
 
 # Flask Commands
 
@@ -68,7 +16,7 @@ $ flask init
 ```
 
 
-# Mock Data
+## Mock Data
 
 ## Staff Members
 
@@ -158,6 +106,126 @@ For example:
 ```bash
 $ flask course create "COMP200" "Advanced Programming" 1 2 3
 ```
+
+
+
+Requirement #2 - creating a staff member (lecturer, tutor or TA):
+
+```python
+# inside wsgi.py
+
+staff_cli = AppGroup('staff', help='Staff object commands')
+
+@staff_cli.command("create", help="Creates a staff member")
+@click.argument("title")
+@click.argument("first_name")
+@click.argument("last_name")
+@click.argument("role")
+def create_staff_command(title, first_name, last_name, role):
+    staff = create_staff(title, first_name, last_name, role)
+    print(f'Staff member {staff.firstName} {staff.lastName} created!')
+
+app.cli.add_command(staff_cli)
+
+
+
+```
+
+Then execute the command invoking with flask cli with command name and the relevant parameters
+
+```bash
+$ flask staff create "title" "first name" "last name" "role (lecturer, tutor or TA)"
+```
+
+For example: 
+
+```bash
+$ flask staff create Dr Heinz Doofenshmirtz lecturer
+```
+
+
+
+Requirement #3 - assigning a staff member to a course
+
+```python
+# inside wsgi.py
+
+@course_cli.command("assign", help="Assign staff to a course")
+@click.argument("course_code")
+@click.argument("lecturer_id", required=False)
+@click.argument("tutor_id", required=False)
+@click.argument("ta_id", required=False)
+def assign_staff_command(course_code, lecturer_id=None, tutor_id=None, ta_id=None):
+    success = assign_staff_to_course(course_code, lecturer_id, tutor_id, ta_id)
+    if success:
+        # Fetch and display staff names
+        course = Course.query.filter_by(courseCode=course_code).first()
+        lecturer = Staff.query.get(course.lecturer_id)
+        tutor = Staff.query.get(course.tutor_id)
+        ta = Staff.query.get(course.ta_id)
+
+        lecturer_name = f"{lecturer.title} {lecturer.firstName} {lecturer.lastName}" if lecturer else "None"
+        tutor_name = f"{tutor.title} {tutor.firstName} {tutor.lastName}" if tutor else "None"
+        ta_name = f"{ta.title} {ta.firstName} {ta.lastName}" if ta else "None"
+
+        print(f'Staff assigned to course {course_code} successfully!')
+        print(f'Lecturer: {lecturer_name}')
+        print(f'Tutor: {tutor_name}')
+        print(f'Teaching Assistant: {ta_name}')
+    else:
+        print(f'Course {course_code} not found!')
+
+
+```
+
+Then execute the command invoking with flask cli with command name and the relevant parameters
+
+```bash
+$ flask course assign "course code" "lecturer id" "tutor id" "TA id"
+```
+
+For example: 
+
+```bash
+$ flask course assign "COMP101" 1 2 3
+```
+
+
+
+Requirement #4 - view course details
+
+```python
+# inside wsgi.py
+
+@course_cli.command("view", help="View course details")
+@click.argument("course_code")
+def view_course_command(course_code):
+    details = view_course_details(course_code)
+    if isinstance(details, str):
+        print(details)
+    else:
+        print("Course Details:")
+        for key, value in details.items():
+            print(f"{key}: {value}")
+
+app.cli.add_command(course_cli)
+
+
+
+```
+
+Then execute the command invoking with flask cli with command name and the relevant parameters
+
+```bash
+$ flask course view "course code" 
+```
+
+For example: 
+
+```bash
+$ flask course view COMP101
+```
+
 
 # Running the Project
 
