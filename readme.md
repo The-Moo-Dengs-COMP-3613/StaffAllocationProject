@@ -61,7 +61,57 @@ in configuration information via environment tab of your render project's dashbo
 
 # Flask Commands
 
-The following are the commands to perform the project requirements.
+The database is initialized with mock data. Before executing the commands for the project requirements, initialize the database by executing the following command:
+
+```bash
+$ flask init
+```
+
+
+# Mock Data
+
+## Staff Members
+
+### Lecturers
+| Title  | First Name | Last Name    | Role      |
+|--------|------------|--------------|-----------|
+| Dr.    | Jane       | Villanueva   | Lecturer  |
+| Prof.  | Jackson    | Duke         | Lecturer  |
+| Dr.    | Emily      | Cooper       | Lecturer  |
+| Prof.  | Tony       | Stark        | Lecturer  |
+| Dr.    | Camille    | Wilson       | Lecturer  |
+
+### Tutors
+| Title  | First Name | Last Name    | Role      |
+|--------|------------|--------------|-----------|
+| Mr.    | Robert     | Pattinson    | Tutor     |
+| Ms.    | Lindsay    | Lohan        | Tutor     |
+| Mr.    | James      | Charles      | Tutor     |
+| Ms.    | Steven     | Harrison     | Tutor     |
+| Mr.    | Kevin      | Hart         | Tutor     |
+
+### Teaching Assistants (TAs)
+| Title  | First Name | Last Name    | Role      |
+|--------|------------|--------------|-----------|
+| Mr.    | Mark       | Taylor       | TA        |
+| Ms.    | Rachel     | Adams        | TA        |
+| Mr.    | Michael    | Jordan       | TA        |
+| Ms.    | Jessica    | Alba         | TA        |
+| Mr.    | Daniel     | Radcliffe    | TA        |
+
+## Courses
+
+| Course Code | Course Name                       | Lecturer               | Tutor                | Teaching Assistant     |
+|-------------|-----------------------------------|------------------------|----------------------|------------------------|
+| COMP101     | Introduction to Computer Science  | Dr. Jane Villanueva     | Mr. Robert Pattinson  | Mr. Mark Taylor         |
+| MATH102     | Discrete Maths                    | Prof. Jackson Duke      | Ms. Lindsay Lohan     | Ms. Rachel Adams        |
+| ELEC201     | Electronics                       | Dr. Emily Cooper        | Mr. James Charles     | Mr. Michael Jordan      |
+| ENG101      | Thermodynamics                    | Prof. Tony Stark        | Ms. Steven Harrison   | Ms. Jessica Alba        |
+| COMP102     | Computer Programming              | Dr. Camille Wilson      | Mr. Kevin Hart        | Mr. Daniel Radcliffe    |
+
+
+
+After initalizing the database, the following commands can be executed to demonstrate the project requirements:
 
 Requirement #1 - creating a course:
 
