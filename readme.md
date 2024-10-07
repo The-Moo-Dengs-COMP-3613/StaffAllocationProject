@@ -3,8 +3,7 @@
   <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
 </a>
 
-![Tests](https://github.com/uwidcit/flaskmvc/actions/workflows/dev.yml/badge.svg)
-
+![Test](https://github.com/uwidcit/flaskmvc/actions/workflows/dev.yml/badge.svg)
 
 
 # Flask Commands
